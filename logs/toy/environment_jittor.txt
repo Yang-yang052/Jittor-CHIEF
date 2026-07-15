@@ -1,0 +1,5 @@
+backend=jittor
+python=3.10.20 (main, Jun 16 2026, 21:03:20) [GCC 11.4.0]
+platform=Linux-6.8.0-1059-azure-x86_64-with-glibc2.35
+device=cpu
+best_val_loss=0.3028796563545863
