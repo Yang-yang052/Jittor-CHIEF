@@ -1,0 +1,1 @@
+{"backend": "torch", "device": "cpu", "patches": 512, "runs": 30, "parameters": 1186571, "mean_ms": 4.88926666706296, "std_ms": 1.5566595774058762, "p95_ms": 8.44444500071404}

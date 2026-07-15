@@ -1,0 +1,41 @@
+name: Jittor CHIEF alignment
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux-cpu:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ libomp-dev
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install torch jittor==1.3.11.0 pytest
+      - name: Static and PyTorch tests
+        run: pytest -q
+      - name: Forward, loss and one-step alignment
+        run: python tools/align_torch_jittor.py --size xs --patches 11 --output logs/alignment_ci.json
+      - name: Jittor train and test smoke run
+        run: |
+          python scripts/make_toy_data.py --output data/ci --feature-dim 384 --train 12 --val 6 --test 6
+          python train.py --config configs/ci.yaml --backend jittor --device cpu
+          python test.py --config configs/ci.yaml --backend jittor --device cpu
+      - name: Upload reproducibility evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: jittor-chief-evidence
+          path: |
+            logs/alignment_ci.json
+            logs/ci/
+            results/ci/

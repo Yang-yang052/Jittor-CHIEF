@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this reimplementation, cite the original CHIEF paper and this repository."
+title: "Jittor-CHIEF: a Jittor reimplementation of the CHIEF WSI model"
+type: software
+version: 0.1.0
+license: GPL-3.0-only
+preferred-citation:
+  type: article
+  title: "A pathology foundation model for cancer diagnosis and prognosis prediction"
+  authors:
+    - family-names: Wang
+      given-names: Xiyue
+    - family-names: Zhao
+      given-names: Junhan
+    - family-names: Marostica
+      given-names: Eliana
+  journal: Nature
+  volume: 634
+  start: 970
+  end: 978
+  year: 2024
+  doi: 10.1038/s41586-024-07894-z

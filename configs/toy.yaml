@@ -1,0 +1,22 @@
+seed: 2026
+data_root: data/toy/features
+train_csv: data/toy/train.csv
+val_csv: data/toy/val.csv
+test_csv: data/toy/test.csv
+size_arg: small
+input_dim: 768
+hidden_dim: 512
+attention_dim: 256
+n_classes: 3
+n_organs: 19
+organ_dim: 768
+dropout: false
+use_organ_context: false
+learning_rate: 0.0002
+weight_decay: 0.00001
+epochs: 8
+patience: 4
+checkpoint_dir: checkpoints/toy
+log_dir: logs/toy
+result_dir: results/toy
+

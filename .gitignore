@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.cache/
+.jittor-cache*/
+jittor_chief.egg-info/
+data/features/
+data/toy/
+checkpoints/
+model_weight/
+*.pth
+*.pt
+*.pkl
