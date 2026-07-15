@@ -1,5 +1,8 @@
 name: Jittor CHIEF alignment
 
+permissions:
+  contents: write
+
 on:
   push:
   pull_request:
@@ -31,6 +34,11 @@ jobs:
           python scripts/make_toy_data.py --output data/ci --feature-dim 384 --train 12 --val 6 --test 6
           python train.py --config configs/ci.yaml --backend jittor --device cpu
           python test.py --config configs/ci.yaml --backend jittor --device cpu
+      - name: Jittor performance and visualization evidence
+        run: |
+          python tools/benchmark.py --backend jittor --device cpu --patches 128 --runs 10 --output logs/performance_ci_jittor.jsonl
+          python tools/plot_logs.py --torch-log logs/ci/missing_torch.jsonl --jittor-log logs/ci/train_jittor.jsonl --output results/ci/loss_curve_jittor.png
+          python tools/visualize_attention.py --input results/ci/attention_jittor/test_0000.npz --top-k 20 --output results/ci/attention_top20_jittor.png
       - name: Upload reproducibility evidence
         uses: actions/upload-artifact@v4
         with:
@@ -38,4 +46,13 @@ jobs:
           path: |
             logs/alignment_ci.json
             logs/ci/
+            logs/performance_ci_jittor.jsonl
             results/ci/
+      - name: Commit Jittor evidence to the repository
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f logs/alignment_ci.json logs/ci logs/performance_ci_jittor.jsonl results/ci
+          git diff --cached --quiet || git commit -m "Add Jittor CI evidence [skip ci]"
+          git push

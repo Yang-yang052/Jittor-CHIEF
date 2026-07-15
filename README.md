@@ -238,7 +238,7 @@ WSI 的 patch 数可能非常大。显存不足时可使用 `--max-patches 4096`
 | PyTorch toy test macro-AUROC | 1.0000 |
 | PyTorch CPU 推理，512 patches，30 次 | 4.889 ± 1.557 ms |
 | Jittor 本机原生 Windows | 框架初始化失败，未伪造结果 |
-| Jittor Linux CI | 推送 GitHub 后由 workflow 自动生成 |
+| Jittor Linux CI | 对齐、训练、测试全部通过（Actions run 29413034530） |
 
 日志与图：
 
@@ -249,6 +249,8 @@ WSI 的 patch 数可能非常大。显存不足时可使用 `--max-patches 4096`
 - `results/toy/attention_top20_torch.png`
 
 toy 数据具有明确的类别原型，因此 1.0 指标只说明管线能学习和泛化到同分布合成数据，不能与 Nature 论文的临床结果横向比较。
+
+第一轮公开 CI 记录：[Jittor CHIEF alignment run 29413034530](https://github.com/Yang-yang052/Jittor-CHIEF/actions/runs/29413034530)。该运行的单元测试、前向/损失/单步更新对齐以及 Jittor smoke train/test 均为 `success`。
 
 ## 10. 真实任务复现检查表
 
