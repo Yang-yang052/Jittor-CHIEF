@@ -29,30 +29,30 @@ jobs:
         run: pytest -q
       - name: Forward, loss and one-step alignment
         run: python tools/align_torch_jittor.py --size xs --patches 11 --output logs/alignment_ci.json
-      - name: Jittor train and test smoke run
+      - name: Matched Jittor train and test run
         run: |
-          python scripts/make_toy_data.py --output data/ci --feature-dim 384 --train 12 --val 6 --test 6
-          python train.py --config configs/ci.yaml --backend jittor --device cpu
-          python test.py --config configs/ci.yaml --backend jittor --device cpu
+          python scripts/make_toy_data.py --output data/toy --feature-dim 768 --train 36 --val 12 --test 12 --seed 2026
+          python train.py --config configs/toy.yaml --backend jittor --device cpu --init-weights logs/toy/common_init.npz
+          python test.py --config configs/toy.yaml --backend jittor --device cpu
       - name: Jittor performance and visualization evidence
         run: |
-          python tools/benchmark.py --backend jittor --device cpu --patches 128 --runs 10 --output logs/performance_ci_jittor.jsonl
-          python tools/plot_logs.py --torch-log logs/ci/missing_torch.jsonl --jittor-log logs/ci/train_jittor.jsonl --output results/ci/loss_curve_jittor.png
-          python tools/visualize_attention.py --input results/ci/attention_jittor/test_0000.npz --top-k 20 --output results/ci/attention_top20_jittor.png
+          python tools/benchmark.py --backend jittor --device cpu --patches 512 --runs 30 --output logs/performance_toy_jittor.jsonl
+          python tools/plot_logs.py --torch-log logs/toy/train_torch.jsonl --jittor-log logs/toy/train_jittor.jsonl --output results/toy/loss_alignment.png
+          python tools/visualize_attention.py --input results/toy/attention_jittor/test_0000.npz --top-k 20 --output results/toy/attention_top20_jittor.png
       - name: Upload reproducibility evidence
         uses: actions/upload-artifact@v4
         with:
           name: jittor-chief-evidence
           path: |
             logs/alignment_ci.json
-            logs/ci/
-            logs/performance_ci_jittor.jsonl
-            results/ci/
+            logs/toy/
+            logs/performance_toy_jittor.jsonl
+            results/toy/
       - name: Commit Jittor evidence to the repository
         if: github.event_name == 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f logs/alignment_ci.json logs/ci logs/performance_ci_jittor.jsonl results/ci
+          git add -f logs/alignment_ci.json logs/toy/train_jittor.jsonl logs/toy/environment_jittor.txt logs/performance_toy_jittor.jsonl results/toy
           git diff --cached --quiet || git commit -m "Add Jittor CI evidence [skip ci]"
           git push
