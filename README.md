@@ -225,7 +225,7 @@ WSI 的 patch 数可能非常大。显存不足时可使用 `--max-patches 4096`
 
 ## 9. 当前可核验结果
 
-运行环境：Windows 11，AMD Ryzen 9 8945HX，CPU PyTorch 2.13，随机种子 2026。
+PyTorch 本地环境：Windows 11，AMD Ryzen 9 8945HX，CPU PyTorch 2.13。Jittor 环境：GitHub Actions Ubuntu 22.04、Python 3.10.20、GCC 11.4、Jittor 1.3.11。两者使用相同随机种子 2026、相同 768 维模型、相同数据和相同初始化。
 
 | 实验 | 结果 |
 |---|---:|
@@ -237,20 +237,34 @@ WSI 的 patch 数可能非常大。显存不足时可使用 `--max-patches 4096`
 | PyTorch toy test macro-F1 | 1.0000 |
 | PyTorch toy test macro-AUROC | 1.0000 |
 | PyTorch CPU 推理，512 patches，30 次 | 4.889 ± 1.557 ms |
+| Jittor toy 训练 loss（epoch 1 → 8） | 1.094550 → 0.009032 |
+| Jittor toy 验证 loss（epoch 1 → 8） | 1.069769 → 0.302880 |
+| Jittor toy test accuracy / macro-F1 / macro-AUROC | 1.0000 / 1.0000 / 1.0000 |
+| 8 epochs 最大 train / val loss 差异 | 0.000644 / 0.000762 |
+| 跨框架前向最大绝对误差 | 4.768 × 10⁻⁷ |
+| 交叉熵绝对误差 | 0 |
+| 单步更新后权重最大绝对误差 | 1.863 × 10⁻⁹ |
+| Jittor CPU 推理，512 patches，30 次（Azure） | 0.086 ± 0.004 ms |
 | Jittor 本机原生 Windows | 框架初始化失败，未伪造结果 |
-| Jittor Linux CI | 对齐、训练、测试全部通过（Actions run 29413034530） |
+| Jittor Linux CI | 对齐、8-epoch 训练、测试、性能与可视化全部通过 |
 
 日志与图：
 
 - `logs/toy/train_torch.jsonl`
+- `logs/toy/train_jittor.jsonl`
+- `logs/alignment_ci.json`
 - `logs/performance.jsonl`
+- `logs/performance_toy_jittor.jsonl`
 - `results/toy/metrics_torch.json`
+- `results/toy/metrics_jittor.json`
 - `results/toy/loss_curve_torch.png`
+- `results/toy/loss_alignment.png`
 - `results/toy/attention_top20_torch.png`
+- `results/toy/attention_top20_jittor.png`
 
 toy 数据具有明确的类别原型，因此 1.0 指标只说明管线能学习和泛化到同分布合成数据，不能与 Nature 论文的临床结果横向比较。
 
-第一轮公开 CI 记录：[Jittor CHIEF alignment run 29413034530](https://github.com/Yang-yang052/Jittor-CHIEF/actions/runs/29413034530)。该运行的单元测试、前向/损失/单步更新对齐以及 Jittor smoke train/test 均为 `success`。
+最终公开 CI 记录：[Jittor CHIEF alignment run 29413943878](https://github.com/Yang-yang052/Jittor-CHIEF/actions/runs/29413943878)。该运行的单元测试、前向/损失/单步更新对齐、Jittor 8-epoch 训练、测试、性能测试和可视化均为 `success`。PyTorch 与 Jittor 的性能数字来自不同机器，因此只能证明各自可运行，不能直接用于框架速度排名。
 
 ## 10. 真实任务复现检查表
 
