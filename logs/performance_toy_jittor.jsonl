@@ -1,3 +1,4 @@
 {"backend": "jittor", "device": "cpu", "patches": 512, "runs": 30, "parameters": 1201163, "mean_ms": 0.08639316667048054, "std_ms": 0.004430881508329765, "p95_ms": 0.09621455001536106}
 {"backend": "jittor", "device": "cpu", "patches": 512, "runs": 30, "parameters": 1201163, "mean_ms": 0.08815129998538396, "std_ms": 0.004221003405699604, "p95_ms": 0.0969685000256959}
 {"backend": "jittor", "device": "cpu", "patches": 512, "runs": 30, "parameters": 1201163, "mean_ms": 0.08906570000135616, "std_ms": 0.004365083086352471, "p95_ms": 0.0986251499455193}
+{"backend": "jittor", "device": "cpu", "patches": 512, "runs": 30, "parameters": 1201163, "mean_ms": 0.11121083333781219, "std_ms": 0.014944193238393686, "p95_ms": 0.1448224000142772}
