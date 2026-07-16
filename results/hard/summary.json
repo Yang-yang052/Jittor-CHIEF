@@ -1,0 +1,70 @@
+{
+  "experiment": "difficult_synthetic_three_seed",
+  "seeds": [
+    2026,
+    2027,
+    2028
+  ],
+  "data_generation": {
+    "train": 180,
+    "val": 60,
+    "test": 90,
+    "min_patches": 64,
+    "max_patches": 160,
+    "background_std": 0.8,
+    "informative_fraction": 0.12,
+    "signal_strength": 1.7,
+    "bag_shift_std": 0.1,
+    "train_label_noise": 0.05,
+    "test_domain_shift": 0.2,
+    "organ_index": 0
+  },
+  "per_seed": {
+    "2026": {
+      "torch": {
+        "accuracy": 0.6333333333333333,
+        "balanced_accuracy": 0.6333333333333333,
+        "macro_f1": 0.6347171347171346,
+        "macro_auroc": 0.7598148148148148
+      }
+    },
+    "2027": {
+      "torch": {
+        "accuracy": 0.4444444444444444,
+        "balanced_accuracy": 0.4444444444444444,
+        "macro_f1": 0.3623413623413623,
+        "macro_auroc": 0.8703703703703702
+      }
+    },
+    "2028": {
+      "torch": {
+        "accuracy": 0.5,
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.5008419441255262,
+        "macro_auroc": 0.6814814814814815
+      }
+    }
+  },
+  "summary": {
+    "torch": {
+      "accuracy": {
+        "mean": 0.5259259259259259,
+        "std": 0.09707661053393449
+      },
+      "balanced_accuracy": {
+        "mean": 0.5259259259259259,
+        "std": 0.09707661053393449
+      },
+      "macro_f1": {
+        "mean": 0.499300147061341,
+        "std": 0.13619443159676164
+      },
+      "macro_auroc": {
+        "mean": 0.7705555555555555,
+        "std": 0.09490139999054069
+      }
+    }
+  },
+  "paired_absolute_differences": {},
+  "loss_differences": {}
+}

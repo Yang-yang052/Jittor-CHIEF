@@ -6,8 +6,12 @@ __pycache__/
 jittor_chief.egg-info/
 data/features/
 data/toy/
+data/hard/
+data/compat_check/
 checkpoints/
 model_weight/
+outputs/
+results/hard/seed_*/attention_*/
 *.pth
 *.pt
 *.pkl

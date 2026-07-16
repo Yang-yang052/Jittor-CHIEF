@@ -1,0 +1,38 @@
+seed: 2026
+experiment_seeds:
+  - 2026
+  - 2027
+  - 2028
+data_root: data/hard/seed_2026/features
+train_csv: data/hard/seed_2026/train.csv
+val_csv: data/hard/seed_2026/val.csv
+test_csv: data/hard/seed_2026/test.csv
+size_arg: small
+input_dim: 768
+hidden_dim: 512
+attention_dim: 256
+n_classes: 3
+n_organs: 19
+organ_dim: 768
+dropout: false
+use_organ_context: false
+learning_rate: 0.0002
+weight_decay: 0.00001
+epochs: 18
+patience: 6
+checkpoint_dir: checkpoints/hard/seed_2026
+log_dir: logs/hard/seed_2026
+result_dir: results/hard/seed_2026
+data_generation:
+  train: 180
+  val: 60
+  test: 90
+  min_patches: 64
+  max_patches: 160
+  background_std: 0.8
+  informative_fraction: 0.12
+  signal_strength: 1.7
+  bag_shift_std: 0.1
+  train_label_noise: 0.05
+  test_domain_shift: 0.2
+  organ_index: 0

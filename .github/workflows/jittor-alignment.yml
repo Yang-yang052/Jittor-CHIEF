@@ -11,7 +11,7 @@ on:
 jobs:
   linux-cpu:
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,6 +39,11 @@ jobs:
           python tools/benchmark.py --backend jittor --device cpu --patches 512 --runs 30 --output logs/performance_toy_jittor.jsonl
           python tools/plot_logs.py --torch-log logs/toy/train_torch.jsonl --jittor-log logs/toy/train_jittor.jsonl --output results/toy/loss_alignment.png
           python tools/visualize_attention.py --input results/toy/attention_jittor/test_0000.npz --top-k 20 --output results/toy/attention_top20_jittor.png
+      - name: Difficult synthetic three-seed Jittor experiment
+        run: |
+          python scripts/run_hard_experiment.py --backend jittor --device cpu
+          python tools/visualize_attention.py --input results/hard/seed_2026/attention_torch/test_0000.npz --top-k 20 --output results/hard/attention_top20_torch.png
+          python tools/visualize_attention.py --input results/hard/seed_2026/attention_jittor/test_0000.npz --top-k 20 --output results/hard/attention_top20_jittor.png
       - name: Upload reproducibility evidence
         uses: actions/upload-artifact@v4
         with:
@@ -48,11 +53,15 @@ jobs:
             logs/toy/
             logs/performance_toy_jittor.jsonl
             results/toy/
+            logs/hard/
+            results/hard/
       - name: Commit Jittor evidence to the repository
         if: github.event_name == 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f logs/alignment_ci.json logs/toy/train_jittor.jsonl logs/toy/environment_jittor.txt logs/performance_toy_jittor.jsonl results/toy
+          git add -f logs/hard/seed_*/resolved_config.yaml logs/hard/seed_*/common_init.npz logs/hard/seed_*/train_*.jsonl logs/hard/seed_*/environment_*.txt
+          git add -f results/hard/seed_*/metrics_*.json results/hard/seed_*/predictions_*.csv results/hard/summary.json results/hard/metrics.csv results/hard/*.png
           git diff --cached --quiet || git commit -m "Add Jittor CI evidence [skip ci]"
           git push
