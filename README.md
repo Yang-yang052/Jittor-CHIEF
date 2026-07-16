@@ -76,6 +76,8 @@ tools/benchmark.py                 推理性能记录
 tools/plot_logs.py                 Loss 曲线
 tools/visualize_attention.py       top-k patch 注意力图
 scripts/make_toy_data.py           确定性合成 WSI 特征
+scripts/run_hard_experiment.py     困难版三随机种子训练与测试入口
+tools/summarize_hard_experiment.py 困难版均值/标准差与跨框架汇总
 train.py / test.py                 统一训练与测试入口
 .github/workflows/                 Linux Jittor 自动验证
 ```
@@ -263,6 +265,62 @@ PyTorch 本地环境：Windows 11，AMD Ryzen 9 8945HX，CPU PyTorch 2.13。Jitt
 - `results/toy/attention_top20_jittor.png`
 
 toy 数据具有明确的类别原型，因此 1.0 指标只说明管线能学习和泛化到同分布合成数据，不能与 Nature 论文的临床结果横向比较。
+
+### 9.1 困难版合成数据：三随机种子压力测试
+
+为了避免把简单 toy 数据上的 `1.0` 误解为真实任务性能，仓库新增了一个更困难、但仍可完全复现的合成实验。它的目标不是模拟真实病理图像，而是检查在弱信号、噪声、bag 干扰和测试域偏移下，训练结论是否仍稳定、跨框架是否仍一致。
+
+固定实验协议：
+
+| 项目 | 设置 |
+|---|---:|
+| 随机种子 | 2026 / 2027 / 2028 |
+| train / val / test | 180 / 60 / 90 bags（每个 seed） |
+| 单个 bag 的 patch 数 | 64–160 |
+| 特征维度 | 768 |
+| 含类别信号的 patch | 12% |
+| 类别信号强度 | 1.7 |
+| bag 级干扰标准差 | 0.1 |
+| 训练标签噪声 | 5% |
+| 测试原型域偏移 | 0.2 |
+
+PyTorch 三随机种子测试结果：
+
+| Seed | Accuracy | Macro-F1 | Macro-AUROC |
+|---:|---:|---:|---:|
+| 2026 | 0.6333 | 0.6347 | 0.7598 |
+| 2027 | 0.4444 | 0.3623 | 0.8704 |
+| 2028 | 0.5000 | 0.5008 | 0.6815 |
+| **Mean ± SD** | **0.5259 ± 0.0971** | **0.4993 ± 0.1362** | **0.7706 ± 0.0949** |
+
+Macro-AUROC 高于 Accuracy 并不矛盾：AUROC 衡量样本排序，不依赖固定阈值或 `argmax` 已经校准正确；模型可能已学会大致风险排序，但仍在类别决策边界上产生较多错误。
+
+运行命令：
+
+```bash
+# Windows 可先运行 PyTorch 三种子实验
+python scripts/run_hard_experiment.py --backend torch --device cpu
+
+# Linux / WSL2 / GitHub Actions 运行 Jittor
+python scripts/run_hard_experiment.py --backend jittor --device cpu
+
+# 重新生成三种子均值、标准差、跨框架差值和曲线
+python tools/summarize_hard_experiment.py --config configs/hard.yaml
+```
+
+主要证据文件：
+
+- `configs/hard.yaml`
+- `logs/hard/seed_*/resolved_config.yaml`
+- `logs/hard/seed_*/common_init.npz`
+- `logs/hard/seed_*/train_torch.jsonl`
+- `results/hard/seed_*/metrics_torch.json`
+- `results/hard/seed_*/predictions_torch.csv`
+- `results/hard/summary.json`
+- `results/hard/metrics_comparison.png`
+- `results/hard/loss_alignment.png`
+
+困难版 Jittor 三种子实验已加入 `.github/workflows/jittor-alignment.yml`。工作流复用相同生成参数和 `common_init.npz`，完成后会把 Jittor 日志、指标、预测文件以及更新后的跨框架图自动回写仓库；在 CI 结果回写前，不使用旧实验的 Jittor 指标替代困难版结果。
 
 最终公开 CI 记录：[Jittor CHIEF alignment run 29413943878](https://github.com/Yang-yang052/Jittor-CHIEF/actions/runs/29413943878)。该运行的单元测试、前向/损失/单步更新对齐、Jittor 8-epoch 训练、测试、性能测试和可视化均为 `success`。PyTorch 与 Jittor 的性能数字来自不同机器，因此只能证明各自可运行，不能直接用于框架速度排名。
 
