@@ -225,6 +225,36 @@ python tools/visualize_attention.py \
 
 WSI 的 patch 数可能非常大。显存不足时可使用 `--max-patches 4096` 做确定性子采样；正式实验必须在 README/报告中注明采样上限。
 
+### 8.1 录屏用的一键训练测试演示
+
+建议在 Linux、WSL2 或 GitHub Actions 环境中运行。该脚本会依次完成：toy 数据生成、共同初始化、前向/损失/一步更新对齐、Jittor 训练、Jittor 测试、Loss 曲线和注意力图生成。
+
+```bash
+python scripts/run_jittor_demo.py --device cpu
+```
+
+如果数据和 `common_init.npz` 已经准备好，可缩短演示时间：
+
+```bash
+python scripts/run_jittor_demo.py --device cpu --skip-data
+```
+
+录屏时建议依次打开：
+
+1. `chief_jittor/model.py`：讲解 `CHIEFJittor.execute()` 的输入、门控注意力、softmax、聚合和六个返回值；
+2. `chief_jittor/engine.py`：指出 Jittor 使用 `optimizer.step(loss)` 完成反向传播与参数更新；
+3. `logs/toy/train_jittor.jsonl`：展示逐轮训练/验证 Loss；
+4. `checkpoints/toy/chief_jittor.pkl`：展示最佳验证 checkpoint；
+5. `results/toy/metrics_jittor.json` 与 `predictions_jittor.csv`：展示总体指标和逐病例结果；
+6. `results/toy/attention_jittor/` 与 `attention_top20_jittor.png`：展示 patch 级注意力证据；
+7. [GitHub Actions run 29490678862](https://github.com/Yang-yang052/Jittor-CHIEF/actions/runs/29490678862)：证明 Linux 上真实完成训练、测试、三种子压力实验和结果回写。
+
+课程汇报材料：
+
+- [30 页算法与训练测试演示强化版 PPT](outputs/杨博涵-CHIEF-Jittor复现-算法与训练测试演示强化版.pptx)
+- [约 25 分钟完整讲稿](outputs/杨博涵-CHIEF-Jittor复现-算法与训练测试演示强化版-25分钟讲稿.docx)
+- [PPT 演讲者备注 Markdown](outputs/杨博涵-CHIEF-Jittor复现-算法与训练测试演示强化版-讲稿.md)
+
 ## 9. 当前可核验结果
 
 PyTorch 本地环境：Windows 11，AMD Ryzen 9 8945HX，CPU PyTorch 2.13。Jittor 环境：GitHub Actions Ubuntu 22.04、Python 3.10.20、GCC 11.4、Jittor 1.3.11。两者使用相同随机种子 2026、相同 768 维模型、相同数据和相同初始化。
@@ -284,14 +314,20 @@ toy 数据具有明确的类别原型，因此 1.0 指标只说明管线能学�
 | 训练标签噪声 | 5% |
 | 测试原型域偏移 | 0.2 |
 
-PyTorch 三随机种子测试结果：
+PyTorch 与 Jittor 三随机种子测试结果：
 
-| Seed | Accuracy | Macro-F1 | Macro-AUROC |
-|---:|---:|---:|---:|
-| 2026 | 0.6333 | 0.6347 | 0.7598 |
-| 2027 | 0.4444 | 0.3623 | 0.8704 |
-| 2028 | 0.5000 | 0.5008 | 0.6815 |
-| **Mean ± SD** | **0.5259 ± 0.0971** | **0.4993 ± 0.1362** | **0.7706 ± 0.0949** |
+| Seed | 框架 | Accuracy | Macro-F1 | Macro-AUROC |
+|---:|---|---:|---:|---:|
+| 2026 | PyTorch | 0.6333 | 0.6347 | 0.7598 |
+| 2026 | Jittor | 0.6222 | 0.6228 | 0.7593 |
+| 2027 | PyTorch | 0.4444 | 0.3623 | 0.8704 |
+| 2027 | Jittor | 0.4444 | 0.3623 | 0.8704 |
+| 2028 | PyTorch | 0.5000 | 0.5008 | 0.6815 |
+| 2028 | Jittor | 0.5000 | 0.5008 | 0.6787 |
+| **Mean ± SD** | **PyTorch** | **0.5259 ± 0.0971** | **0.4993 ± 0.1362** | **0.7706 ± 0.0949** |
+| **Mean ± SD** | **Jittor** | **0.5222 ± 0.0909** | **0.4953 ± 0.1303** | **0.7694 ± 0.0962** |
+
+三个 seed 上跨框架成对指标的最大绝对差为：Accuracy `0.0111`、Balanced Accuracy `0.0111`、Macro-F1 `0.0119`、Macro-AUROC `0.0028`。
 
 Macro-AUROC 高于 Accuracy 并不矛盾：AUROC 衡量样本排序，不依赖固定阈值或 `argmax` 已经校准正确；模型可能已学会大致风险排序，但仍在类别决策边界上产生较多错误。
 
@@ -314,15 +350,18 @@ python tools/summarize_hard_experiment.py --config configs/hard.yaml
 - `logs/hard/seed_*/resolved_config.yaml`
 - `logs/hard/seed_*/common_init.npz`
 - `logs/hard/seed_*/train_torch.jsonl`
+- `logs/hard/seed_*/train_jittor.jsonl`
 - `results/hard/seed_*/metrics_torch.json`
+- `results/hard/seed_*/metrics_jittor.json`
 - `results/hard/seed_*/predictions_torch.csv`
+- `results/hard/seed_*/predictions_jittor.csv`
 - `results/hard/summary.json`
 - `results/hard/metrics_comparison.png`
 - `results/hard/loss_alignment.png`
 
-困难版 Jittor 三种子实验已加入 `.github/workflows/jittor-alignment.yml`。工作流复用相同生成参数和 `common_init.npz`，完成后会把 Jittor 日志、指标、预测文件以及更新后的跨框架图自动回写仓库；在 CI 结果回写前，不使用旧实验的 Jittor 指标替代困难版结果。
+困难版 Jittor 三种子实验已加入 `.github/workflows/jittor-alignment.yml`。工作流复用相同生成参数和 `common_init.npz`，并把 Jittor 日志、指标、预测文件以及更新后的跨框架图自动回写仓库。
 
-最终公开 CI 记录：[Jittor CHIEF alignment run 29413943878](https://github.com/Yang-yang052/Jittor-CHIEF/actions/runs/29413943878)。该运行的单元测试、前向/损失/单步更新对齐、Jittor 8-epoch 训练、测试、性能测试和可视化均为 `success`。PyTorch 与 Jittor 的性能数字来自不同机器，因此只能证明各自可运行，不能直接用于框架速度排名。
+最终公开 CI 记录：[Jittor CHIEF alignment run 29490678862](https://github.com/Yang-yang052/Jittor-CHIEF/actions/runs/29490678862)。该运行的单元测试、前向/损失/单步更新对齐、Jittor 8-epoch 训练、测试、困难版三种子实验、性能测试、可视化和结果回写均为 `success`。PyTorch 与 Jittor 的性能数字来自不同机器，因此只能证明各自可运行，不能直接用于框架速度排名。
 
 ## 10. 真实任务复现检查表
 
